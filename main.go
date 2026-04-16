@@ -71,22 +71,50 @@ func main() {
 	spacer.SetMinSize(fyne.NewSize(0, 20))
 	infinite := widget.NewProgressBarInfinite()
 	infinite.Hide()
+	data := []int{1, 2, 3, 4}
+
+	list := widget.NewList(
+		func() int {
+			return len(data)
+		},
+		func() fyne.CanvasObject {
+
+			return widget.NewLabel("template")
+		},
+		func(i widget.ListItemID, o fyne.CanvasObject) {
+
+			o.(*widget.Label).SetText(fmt.Sprintf(" [+] Port %d is OPEN", data[i]))
+		},
+	)
+
+	list.Resize(fyne.NewSize(20, 100))
 
 	scanButton := widget.NewButton("SCAN", func() {
 		ip := input.Text
 		fmt.Println(ip)
 		infinite.Start()
 		infinite.Show()
+		data = append(data, 5)
+		list.Refresh()
 	})
 
 	cancelButton := widget.NewButton("CANCEL", func() {
-
+		infinite.Stop()
+		infinite.Hide()
 		fmt.Println("CANCELED")
 	})
 	cancelButton.Resize(fyne.NewSize(1, 20))
 
 	hbox2 := container.NewGridWithColumns(2, scanButton, cancelButton)
-	mainWindow.SetContent(container.NewVBox(heading, spacer, hbox1, spacer, hbox2, spacer, infinite))
+	controls := container.NewVBox(heading, spacer, hbox1, spacer, hbox2, spacer, infinite, spacer)
+
+	footer := canvas.NewText("Made by A4BHI", color.NRGBA{R: 255, G: 170, B: 0, A: 255})
+	footer.TextSize = 10
+	footer.TextStyle.Italic = true
+	footer.Alignment = fyne.TextAlignCenter
+
+	mainLayout := container.NewBorder(controls, footer, nil, nil, list)
+	mainWindow.SetContent(mainLayout)
 	mainWindow.Resize(fyne.NewSize(400, 300))
 
 	mainWindow.ShowAndRun()
