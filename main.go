@@ -21,25 +21,18 @@ type myTheme struct{}
 var _ fyne.Theme = (*myTheme)(nil)
 
 func (m *myTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
-	if name == theme.ColorNameBackground {
+	switch name {
+	case theme.ColorNameBackground:
 		return color.NRGBA{R: 18, G: 18, B: 18, A: 255}
-	}
-
-	if name == theme.ColorNameButton {
+	case theme.ColorNameButton:
 		return color.NRGBA{R: 0, G: 163, B: 255, A: 255}
-	}
-
-	if name == theme.ColorNameInputBackground {
+	case theme.ColorNameInputBackground:
 		return color.NRGBA{R: 30, G: 35, B: 45, A: 255}
-	}
-
-	if name == theme.ColorNameForeground {
+	case theme.ColorNameForeground:
 		return color.NRGBA{R: 230, G: 235, B: 240, A: 255}
-	}
-
-	if name == theme.ColorNamePrimary {
-
+	case theme.ColorNamePrimary:
 		return color.NRGBA{R: 255, G: 170, B: 0, A: 255}
+
 	}
 
 	return theme.DefaultTheme().Color(name, variant)
