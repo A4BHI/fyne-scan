@@ -69,19 +69,24 @@ func main() {
 
 	spacer := canvas.NewRectangle(color.Transparent)
 	spacer.SetMinSize(fyne.NewSize(0, 20))
+	infinite := widget.NewProgressBarInfinite()
+	infinite.Hide()
 
 	scanButton := widget.NewButton("SCAN", func() {
 		ip := input.Text
 		fmt.Println(ip)
+		infinite.Start()
+		infinite.Show()
 	})
 
 	cancelButton := widget.NewButton("CANCEL", func() {
 
 		fmt.Println("CANCELED")
 	})
+	cancelButton.Resize(fyne.NewSize(1, 20))
 
 	hbox2 := container.NewGridWithColumns(2, scanButton, cancelButton)
-	mainWindow.SetContent(container.NewVBox(heading, spacer, hbox1, hbox2))
+	mainWindow.SetContent(container.NewVBox(heading, spacer, hbox1, spacer, hbox2, spacer, infinite))
 	mainWindow.Resize(fyne.NewSize(400, 300))
 
 	mainWindow.ShowAndRun()
