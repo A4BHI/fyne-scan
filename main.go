@@ -145,47 +145,48 @@ func main() {
 		ip := input.Text
 		data = []IPStatus{}
 		// list.Refresh()
-
-		var wg sync.WaitGroup
-		var scanWg sync.WaitGroup
-		var ports []string
-		portChan := make(chan string, 100)
-		resultsChan := make(chan IPStatus)
-		ports = append(ports, "8080", "3389", "1443", "3306", "3389", "5900", "9050", "5432")
-
-		wg.Go(func() {
-			for i := 1; i <= 1024; i++ {
-				portChan <- strconv.Itoa(i)
-			}
-			for _, p := range ports {
-				portChan <- p
-			}
-			defer close(portChan)
-		})
-
-		for i := 0; i < 100; i++ {
-			scanner(ip, portChan, resultsChan, &scanWg)
-		}
-
 		go func() {
-			scanWg.Wait()
-			close(resultsChan)
-		}()
+			var wg sync.WaitGroup
+			var scanWg sync.WaitGroup
+			var ports []string
+			portChan := make(chan string, 100)
+			resultsChan := make(chan IPStatus)
+			ports = append(ports, "8080", "3389", "1443", "3306", "3389", "5900", "9050", "5432")
 
-		for res := range resultsChan {
-			data = append(data, res)
+			wg.Go(func() {
+				for i := 1; i <= 1024; i++ {
+					portChan <- strconv.Itoa(i)
+				}
+				for _, p := range ports {
+					portChan <- p
+				}
+				defer close(portChan)
+			})
+
+			for i := 0; i < 100; i++ {
+				scanner(ip, portChan, resultsChan, &scanWg)
+			}
+
 			go func() {
-				fyne.Do(func() {
-					list.Refresh()
-				})
+				scanWg.Wait()
+				close(resultsChan)
 			}()
 
-		}
+			for res := range resultsChan {
+				data = append(data, res)
+				go func() {
+					fyne.Do(func() {
+						list.Refresh()
+					})
+				}()
 
-		fyne.Do(func() {
-			infinite.Stop()
-			infinite.Hide()
-		})
+			}
+			fyne.Do(func() {
+				infinite.Stop()
+				infinite.Hide()
+			})
+
+		}()
 
 	})
 
