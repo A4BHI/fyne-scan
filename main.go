@@ -16,11 +16,19 @@ var _ fyne.Theme = (*myTheme)(nil)
 
 func (m *myTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
 	if name == theme.ColorNameBackground {
-		return color.NRGBA{R: 10, G: 25, B: 45, A: 255}
+		return color.NRGBA{R: 18, G: 18, B: 18, A: 255}
 	}
 
 	if name == theme.ColorNameButton {
-		return color.NRGBA{R: 100, G: 150, B: 255, A: 255}
+		return color.NRGBA{R: 0, G: 163, B: 255, A: 255}
+	}
+
+	if name == theme.ColorNameInputBackground {
+		return color.NRGBA{R: 200, G: 30, B: 30, A: 255}
+	}
+
+	if name == theme.ColorNameForeground {
+		return color.NRGBA{R: 240, G: 240, B: 240, A: 255}
 	}
 
 	return theme.DefaultTheme().Color(name, variant)
@@ -48,7 +56,12 @@ func main() {
 	label.Alignment = fyne.TextAlignCenter
 	label.TextStyle = fyne.TextStyle{Bold: true, Italic: true}
 
-	mainWindow.SetContent(container.NewCenter(label))
+	inputlabel := widget.NewLabel("Target IP/Domain : ")
+	inputlabel.TextStyle = fyne.TextStyle{Monospace: true}
+
+	input := widget.NewEntry()
+	input.SetPlaceHolder("Target IP/Domain")
+	mainWindow.SetContent(container.NewGridWithRows(3, label, inputlabel, input))
 	mainWindow.Resize(fyne.NewSize(400, 300))
 
 	mainWindow.ShowAndRun()
