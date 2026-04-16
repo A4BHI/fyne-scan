@@ -5,6 +5,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -52,16 +53,19 @@ func main() {
 	a.Settings().SetTheme(&myTheme{})
 	mainWindow := a.NewWindow("fyne-scan")
 
-	label := widget.NewLabel("Fyne-Scanner")
-	label.Alignment = fyne.TextAlignCenter
-	label.TextStyle = fyne.TextStyle{Bold: true, Italic: true}
+	heading := canvas.NewText("Fyne-Scanner", color.NRGBA{R: 255, G: 170, B: 0, A: 255})
+	heading.Alignment = fyne.TextAlignCenter
+	heading.TextStyle = fyne.TextStyle{Bold: true, Italic: true}
+	heading.TextSize = 50
 
 	inputlabel := widget.NewLabel("Target IP/Domain : ")
 	inputlabel.TextStyle = fyne.TextStyle{Monospace: true}
 
 	input := widget.NewEntry()
 	input.SetPlaceHolder("Target IP/Domain")
-	mainWindow.SetContent(container.NewGridWithRows(3, label, inputlabel, input))
+
+	hbox := container.NewGridWithColumns(2, inputlabel, input)
+	mainWindow.SetContent(container.NewVBox(heading, hbox))
 	mainWindow.Resize(fyne.NewSize(400, 300))
 
 	mainWindow.ShowAndRun()
