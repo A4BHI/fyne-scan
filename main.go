@@ -3,6 +3,10 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"net"
+	"strconv"
+	"sync"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -26,11 +30,16 @@ func (m *myTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) col
 	}
 
 	if name == theme.ColorNameInputBackground {
-		return color.NRGBA{R: 200, G: 30, B: 30, A: 255}
+		return color.NRGBA{R: 30, G: 35, B: 45, A: 255}
 	}
 
 	if name == theme.ColorNameForeground {
-		return color.NRGBA{R: 240, G: 240, B: 240, A: 255}
+		return color.NRGBA{R: 230, G: 235, B: 240, A: 255}
+	}
+
+	if name == theme.ColorNamePrimary {
+
+		return color.NRGBA{R: 255, G: 170, B: 0, A: 255}
 	}
 
 	return theme.DefaultTheme().Color(name, variant)
@@ -49,6 +58,29 @@ func (m *myTheme) Size(name fyne.ThemeSizeName) float32 {
 	return theme.DefaultTheme().Size(name)
 }
 
+type IPStatus struct {
+	port   string
+	status string
+}
+
+func scanner(ip string, in <-chan string, results chan IPStatus, scanWg *sync.WaitGroup) {
+
+	scanWg.Go(func() {
+		for port := range in {
+
+			conn, err := net.DialTimeout("tcp", ip+":"+port, 2000*time.Millisecond)
+			if err != nil {
+				// fmt.Println("\x1b[31m", err)
+				continue
+			}
+
+			results <- IPStatus{port: port, status: "OPEN"}
+			conn.Close()
+		}
+
+	})
+
+}
 func main() {
 	a := app.New()
 	a.Settings().SetTheme(&myTheme{})
@@ -71,7 +103,7 @@ func main() {
 	spacer.SetMinSize(fyne.NewSize(0, 20))
 	infinite := widget.NewProgressBarInfinite()
 	infinite.Hide()
-	data := []int{1, 2, 3, 4}
+	data := []IPStatus{}
 
 	list := widget.NewList(
 		func() int {
@@ -79,23 +111,82 @@ func main() {
 		},
 		func() fyne.CanvasObject {
 
-			return widget.NewLabel("template")
+			t := canvas.NewText("", color.NRGBA{R: 0, G: 255, B: 195, A: 255})
+			t.Alignment = fyne.TextAlignLeading
+			t.TextStyle.Bold = true
+			t.TextSize = 20
+			return t
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
 
-			o.(*widget.Label).SetText(fmt.Sprintf(" [+] Port %d is OPEN", data[i]))
+			result := o.(*canvas.Text)
+
+			result.Text = "[+]Port = " + data[i].port + " Status = " + data[i].status
+			// result.Color = color.NRGBA{R: 0, G: 255, B: 0, A: 255}
 		},
 	)
 
 	list.Resize(fyne.NewSize(20, 100))
 
 	scanButton := widget.NewButton("SCAN", func() {
-		ip := input.Text
-		fmt.Println(ip)
-		infinite.Start()
-		infinite.Show()
-		data = append(data, 5)
+		// ip := input.Text
+		// fmt.Println(ip)
+
+		go func() {
+			fyne.Do(func() {
+				infinite.Show()
+				infinite.Start()
+			})
+
+		}()
+
+		// data = append(data, 5)
 		list.Refresh()
+		ip := input.Text
+		data = []IPStatus{}
+		// list.Refresh()
+
+		var wg sync.WaitGroup
+		var scanWg sync.WaitGroup
+		var ports []string
+		portChan := make(chan string, 100)
+		resultsChan := make(chan IPStatus)
+		ports = append(ports, "8080", "3389", "1443", "3306", "3389", "5900", "9050", "5432")
+
+		wg.Go(func() {
+			for i := 1; i <= 1024; i++ {
+				portChan <- strconv.Itoa(i)
+			}
+			for _, p := range ports {
+				portChan <- p
+			}
+			defer close(portChan)
+		})
+
+		for i := 0; i < 100; i++ {
+			scanner(ip, portChan, resultsChan, &scanWg)
+		}
+
+		go func() {
+			scanWg.Wait()
+			close(resultsChan)
+		}()
+
+		for res := range resultsChan {
+			data = append(data, res)
+			go func() {
+				fyne.Do(func() {
+					list.Refresh()
+				})
+			}()
+
+		}
+
+		fyne.Do(func() {
+			infinite.Stop()
+			infinite.Hide()
+		})
+
 	})
 
 	cancelButton := widget.NewButton("CANCEL", func() {
