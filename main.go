@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 
 	"fyne.io/fyne/v2"
@@ -58,14 +59,29 @@ func main() {
 	heading.TextStyle = fyne.TextStyle{Bold: true, Italic: true}
 	heading.TextSize = 50
 
-	inputlabel := widget.NewLabel("Target IP/Domain : ")
-	inputlabel.TextStyle = fyne.TextStyle{Monospace: true}
+	inputText := canvas.NewText("Enter IP/Domain : ", color.NRGBA{R: 160, G: 165, B: 175, A: 255})
+	inputText.TextStyle.Bold = true
 
 	input := widget.NewEntry()
 	input.SetPlaceHolder("Target IP/Domain")
 
-	hbox := container.NewGridWithColumns(2, inputlabel, input)
-	mainWindow.SetContent(container.NewVBox(heading, hbox))
+	hbox1 := container.NewGridWithColumns(2, inputText, input)
+
+	spacer := canvas.NewRectangle(color.Transparent)
+	spacer.SetMinSize(fyne.NewSize(0, 20))
+
+	scanButton := widget.NewButton("SCAN", func() {
+		ip := input.Text
+		fmt.Println(ip)
+	})
+
+	cancelButton := widget.NewButton("CANCEL", func() {
+
+		fmt.Println("CANCELED")
+	})
+
+	hbox2 := container.NewGridWithColumns(2, scanButton, cancelButton)
+	mainWindow.SetContent(container.NewVBox(heading, spacer, hbox1, hbox2))
 	mainWindow.Resize(fyne.NewSize(400, 300))
 
 	mainWindow.ShowAndRun()
