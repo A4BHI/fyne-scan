@@ -63,8 +63,22 @@ func scanner(ip string, in <-chan string, results chan IPStatus, scanWg *sync.Wa
 
 			conn, err := net.DialTimeout("tcp", ip+":"+port, 2000*time.Millisecond)
 			if err != nil {
-				// fmt.Println("\x1b[31m", err)
+
 				continue
+			}
+
+			conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+
+			if port == "80" {
+				conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
+			}
+
+			buffer := make([]byte, 1024)
+			n, err := conn.Read(buffer)
+
+			if err == nil {
+				fmt.Println("Port", port, "→", string(buffer[:n]))
+				fmt.Println(n)
 			}
 
 			results <- IPStatus{port: port, status: "OPEN"}
@@ -156,7 +170,7 @@ func main() {
 				defer close(portChan)
 			})
 
-			for i := 0; i < 100; i++ {
+			for i := 0; i < 30; i++ {
 				scanner(ip, portChan, resultsChan, &scanWg)
 			}
 
