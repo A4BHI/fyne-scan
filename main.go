@@ -77,7 +77,7 @@ func scanner(ip string, in <-chan string, results chan IPStatus, scanWg *sync.Wa
 			n, err := conn.Read(buffer)
 
 			if err == nil {
-				fmt.Println("Port", port, "→", string(buffer[:n]))
+				fmt.Println("Portt", port, "→", string(buffer[:n]))
 				fmt.Println(n)
 			}
 
